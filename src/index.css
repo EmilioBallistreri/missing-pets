@@ -911,14 +911,16 @@ img {
 
 .card-footer-actions {
   margin-top: auto;
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  align-items: center;
   gap: 0.55rem;
   padding-top: 0.85rem;
   border-top: 1px solid var(--border-subtle);
 }
 
 .btn-detail {
+  flex: 1;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -970,7 +972,7 @@ img {
   background: rgba(15, 23, 42, 0.74);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 100;
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1019,8 +1021,9 @@ img {
 }
 
 .modal-header {
-  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  padding: 1.25rem 3.75rem 1rem 1.5rem;
   border-bottom: 1px solid var(--border-subtle);
+  position: relative;
 }
 
 .modal-body {
@@ -1077,7 +1080,7 @@ img {
     height: 34px;
   }
   .modal-header {
-    padding: 0.75rem 1rem 0.85rem 1rem;
+    padding: 0.75rem 3.5rem 0.85rem 1rem;
     flex-shrink: 0;
   }
   .modal-body {
@@ -1434,6 +1437,7 @@ img {
   box-shadow: var(--shadow-lg);
   margin-top: 1rem;
   position: relative;
+  isolation: isolate;
 }
 
 .map-element {
@@ -1446,7 +1450,7 @@ img {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  z-index: 1000;
+  z-index: 10;
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(8px);
   padding: 0.75rem 1rem;
@@ -1807,11 +1811,11 @@ img {
   animation: slideUpToast 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .toast-container {
     left: 16px;
     right: 16px;
-    bottom: 16px;
+    bottom: calc(78px + env(safe-area-inset-bottom, 12px));
   }
 }
 
@@ -1955,7 +1959,7 @@ body.modal-open {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 90;
+    z-index: 900;
     background: rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -1963,6 +1967,10 @@ body.modal-open {
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 8px)) 8px;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.07);
     transition: background var(--transition-normal), border-color var(--transition-normal);
+  }
+
+  body.modal-open .mobile-bottom-nav {
+    display: none !important;
   }
 
   [data-theme='dark'] .mobile-bottom-nav {
@@ -2116,7 +2124,7 @@ body.modal-open {
     gap: 6px;
     font-size: 0.72rem;
     box-shadow: var(--shadow-md);
-    z-index: 1000;
+    z-index: 10;
   }
 
   [data-theme='dark'] .map-floating-legend {

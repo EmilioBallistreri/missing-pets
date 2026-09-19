@@ -138,7 +138,7 @@ Enlace directo: ${shareUrl}`;
         </div>
 
         {/* Modal Body / Sheet Canvas */}
-        <div className="modal-body" style={{ background: '#e2e8f0', padding: '1.25rem', overflowY: 'auto', maxHeight: '72vh' }}>
+        <div className="modal-body" style={{ background: 'var(--bg-app)', padding: '1.25rem', overflowY: 'auto', maxHeight: '72vh' }}>
           
           {/* FORMAT 1: CLASSIC A4 PRINTABLE POSTER */}
           {flyerFormat === 'a4' && (
