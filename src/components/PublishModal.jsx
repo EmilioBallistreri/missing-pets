@@ -395,7 +395,7 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
                   id="pub-neighborhood"
                   type="text"
                   className="form-input"
-                  placeholder="Ej. Palermo, Caballito, Belgrano"
+                  placeholder="Ej. Nueva Córdoba, Güemes, Alberdi, Cerro..."
                   value={neighborhood}
                   onChange={(e) => setNeighborhood(e.target.value)}
                   required
@@ -415,24 +415,24 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
                     >
                       <option value="Macho">Macho</option>
                       <option value="Hembra">Hembra</option>
-                      <option value="Desconocido">Desconocido</option>
+                      <option value="No estoy seguro">No estoy seguro / Desconocido</option>
                     </select>
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" htmlFor="pub-breed">Raza o Tipo</label>
+                    <label className="form-label" htmlFor="pub-breed">Raza / Tipo</label>
                     <input
                       id="pub-breed"
                       type="text"
                       className="form-input"
-                      placeholder="Ej. Mestizo, Caniche, Siamés"
+                      placeholder="Ej. Mestizo, Caniche, Siamés, Labrador..."
                       value={breed}
                       onChange={(e) => setBreed(e.target.value)}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" htmlFor="pub-size">Tamaño</label>
+                    <label className="form-label" htmlFor="pub-size">Tamaño corporal</label>
                     <select
                       id="pub-size"
                       className="form-select"
@@ -475,7 +475,7 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
                       id="pub-city"
                       type="text"
                       className="form-input"
-                      placeholder="Ej. Buenos Aires, Rosario, Córdoba"
+                      placeholder="Ej. Córdoba Capital, Carlos Paz, Río Cuarto"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                     />

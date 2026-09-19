@@ -28,12 +28,10 @@ export default function InteractiveMap({ pets, onSelectPet, userCoords, proximit
         scrollWheelZoom: true
       });
 
-      const tileUrl = darkMode
-        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
       tileLayerRef.current = L.tileLayer(tileUrl, {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
       }).addTo(map);
 
@@ -160,16 +158,6 @@ export default function InteractiveMap({ pets, onSelectPet, userCoords, proximit
 
     return () => clearTimeout(timer);
   }, [pets, onSelectPet, userCoords, proximityKm, darkMode]);
-
-  // Synchronize Leaflet tile layer with Dark / Light theme seamlessly
-  useEffect(() => {
-    if (tileLayerRef.current) {
-      const tileUrl = darkMode
-        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-      tileLayerRef.current.setUrl(tileUrl);
-    }
-  }, [darkMode]);
 
   useEffect(() => {
     const container = mapContainerRef.current;

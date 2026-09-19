@@ -25,18 +25,19 @@ export default function PetCard({ pet, onSelectPet, userCoords }) {
           loading="lazy"
         />
 
-        {/* Status Badge */}
-        <span className={`card-badge-status badge-${pet.status}`}>
-          {statusInfo.tag}
-        </span>
-
-        {/* Reward Badge */}
-        {pet.reward && (
-          <span className="card-badge-reward">
-            <Award size={14} />
-            <span>Recompensa {pet.reward}</span>
+        {/* Badges Stack (Top Left - Never Overlap) */}
+        <div className="card-badges-stack">
+          <span className={`card-badge-status badge-${pet.status}`}>
+            {statusInfo.tag}
           </span>
-        )}
+
+          {pet.reward && (
+            <span className="card-badge-reward">
+              <Award size={13} />
+              <span>Recompensa {pet.reward}</span>
+            </span>
+          )}
+        </div>
 
         {/* Time Ago */}
         <span className="card-time-tag">
