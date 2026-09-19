@@ -59,8 +59,6 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('todos'); // 'todos' | 'perdido' | 'encontrado' | 'adopcion'
   const [selectedSpecies, setSelectedSpecies] = useState('todos'); // 'todos' | 'perro' | 'gato' | 'otro'
-  const [selectedSize, setSelectedSize] = useState('todos');
-  const [sortBy, setSortBy] = useState('recent');
 
   // Prevent body scroll when any modal is open
   useEffect(() => {
@@ -135,16 +133,14 @@ export default function App() {
         };
         setUserCoords(coords);
         setProximityKm(5); // Activar por defecto a 5 km
-        setSortBy('distance');
         showToast('📍 Ubicación GPS detectada. Filtrando a 5 km a la redonda.');
       },
       (err) => {
-        console.warn('GPS error, usando centro de prueba:', err);
-        const coords = { lat: -34.6037, lng: -58.3816 };
+        console.warn('GPS error, usando centro de Córdoba de prueba:', err);
+        const coords = { lat: -31.4201, lng: -64.1888 };
         setUserCoords(coords);
         setProximityKm(5);
-        setSortBy('distance');
-        showToast('📍 Ubicación aproximada fijada en Centro / CABA.', 'warning');
+        showToast('📍 Ubicación fijada en Centro / Córdoba.', 'warning');
       },
       { timeout: 6000 }
     );
@@ -153,9 +149,6 @@ export default function App() {
   const handleClearProximity = () => {
     setUserCoords(null);
     setProximityKm(0);
-    if (sortBy === 'distance') {
-      setSortBy('recent');
-    }
     showToast('Filtro de proximidad GPS desactivado.');
   };
 
@@ -262,9 +255,6 @@ export default function App() {
         if (selectedSpecies !== 'todos' && pet.species !== selectedSpecies) {
           return false;
         }
-        if (selectedSize !== 'todos' && pet.size !== selectedSize) {
-          return false;
-        }
 
         if (proximityKm > 0 && userCoords && pet.location?.lat && pet.location?.lng) {
           const dist = calculateDistanceKm(
@@ -282,12 +272,13 @@ export default function App() {
           const q = normalizeText(searchQuery);
           const matchName = normalizeText(pet.name).includes(q);
           const matchBreed = normalizeText(pet.breed).includes(q);
+          const matchOtherSpecies = normalizeText(pet.otherSpecies).includes(q);
           const matchNeighborhood = normalizeText(pet.location?.neighborhood).includes(q);
           const matchCity = normalizeText(pet.location?.city).includes(q);
           const matchDesc = normalizeText(pet.description).includes(q);
           const matchDistinctive = normalizeText(pet.distinctiveFeatures).includes(q);
 
-          if (!matchName && !matchBreed && !matchNeighborhood && !matchCity && !matchDesc && !matchDistinctive) {
+          if (!matchName && !matchBreed && !matchOtherSpecies && !matchNeighborhood && !matchCity && !matchDesc && !matchDistinctive) {
             return false;
           }
         }
@@ -295,29 +286,14 @@ export default function App() {
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === 'distance' && userCoords) {
+        if (proximityKm > 0 && userCoords) {
           const distA = a.location?.lat ? calculateDistanceKm(userCoords.lat, userCoords.lng, a.location.lat, a.location.lng) : 9999;
           const distB = b.location?.lat ? calculateDistanceKm(userCoords.lat, userCoords.lng, b.location.lat, b.location.lng) : 9999;
           return distA - distB;
         }
-        if (sortBy === 'recent') {
-          return new Date(b.dateReported) - new Date(a.dateReported);
-        }
-        if (sortBy === 'urgent') {
-          if (a.status === 'perdido' && b.status !== 'perdido') return -1;
-          if (b.status === 'perdido' && a.status !== 'perdido') return 1;
-          return new Date(b.dateReported) - new Date(a.dateReported);
-        }
-        if (sortBy === 'reward') {
-          const hasRewardA = Boolean(a.reward);
-          const hasRewardB = Boolean(b.reward);
-          if (hasRewardA && !hasRewardB) return -1;
-          if (!hasRewardA && hasRewardB) return 1;
-          return new Date(b.dateReported) - new Date(a.dateReported);
-        }
-        return 0;
+        return new Date(b.dateReported) - new Date(a.dateReported);
       });
-  }, [pets, selectedStatus, selectedSpecies, selectedSize, searchQuery, proximityKm, userCoords, sortBy]);
+  }, [pets, selectedStatus, selectedSpecies, searchQuery, proximityKm, userCoords]);
 
   return (
     <div className="app-container">
@@ -346,10 +322,6 @@ export default function App() {
           setSelectedStatus={setSelectedStatus}
           selectedSpecies={selectedSpecies}
           setSelectedSpecies={setSelectedSpecies}
-          selectedSize={selectedSize}
-          setSelectedSize={setSelectedSize}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
           proximityKm={proximityKm}
           setProximityKm={setProximityKm}
           userCoords={userCoords}
@@ -389,7 +361,6 @@ export default function App() {
                     setSearchQuery('');
                     setSelectedStatus('todos');
                     setSelectedSpecies('todos');
-                    setSelectedSize('todos');
                     setProximityKm(0);
                   }}
                 >

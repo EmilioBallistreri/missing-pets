@@ -3,7 +3,7 @@
 import { INITIAL_PETS } from './mockData';
 import { generateId, calculateDistanceKm } from '../utils/helpers';
 
-const STORAGE_KEY = 'patitas_a_casa_pets_v1';
+const STORAGE_KEY = 'patitas_a_casa_pets_cba_v1';
 const FLAGS_KEY = 'patitas_a_casa_flags_v1';
 
 export const PetStorage = {
@@ -14,7 +14,12 @@ export const PetStorage = {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PETS));
         return INITIAL_PETS;
       }
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].location?.city === 'Buenos Aires') {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PETS));
+        return INITIAL_PETS;
+      }
+      return parsed;
     } catch (err) {
       console.error('Error al leer de localStorage:', err);
       return INITIAL_PETS;

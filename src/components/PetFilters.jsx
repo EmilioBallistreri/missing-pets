@@ -8,10 +8,6 @@ export default function PetFilters({
   setSelectedStatus,
   selectedSpecies,
   setSelectedSpecies,
-  selectedSize,
-  setSelectedSize,
-  sortBy,
-  setSortBy,
   proximityKm,
   setProximityKm,
   userCoords,
@@ -77,7 +73,7 @@ export default function PetFilters({
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         flexWrap: 'wrap',
         gap: '0.75rem',
         padding: '0.75rem 0',
@@ -132,28 +128,10 @@ export default function PetFilters({
             </div>
           )}
         </div>
-
-        {/* Sort selector */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Ordenar:</span>
-          <select
-            id="filter-sort-select"
-            className="sort-select"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            aria-label="Ordenar publicaciones"
-          >
-            <option value="recent">Más recientes primero</option>
-            <option value="urgent">Mayor urgencia</option>
-            <option value="reward">Con recompensa</option>
-            {userCoords && <option value="distance">Más cercanos a mí</option>}
-          </select>
-        </div>
       </div>
 
-      {/* Bottom row: Species pills and Size filter */}
-      <div className="filters-bottom-row">
-        {/* Species selector */}
+      {/* Bottom row: Species selector */}
+      <div className="filters-bottom-row" style={{ justifyContent: 'flex-start' }}>
         <div className="species-filter-group">
           <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>
             Especie:
@@ -182,22 +160,6 @@ export default function PetFilters({
           >
             🐾 Otros
           </button>
-        </div>
-
-        {/* Size dropdown */}
-        <div>
-          <select
-            id="filter-size-select"
-            className="sort-select"
-            value={selectedSize}
-            onChange={(e) => setSelectedSize(e.target.value)}
-            aria-label="Filtrar por tamaño"
-          >
-            <option value="todos">Todos los tamaños</option>
-            <option value="pequeño">Tamaño pequeño</option>
-            <option value="mediano">Tamaño mediano</option>
-            <option value="grande">Tamaño grande</option>
-          </select>
         </div>
       </div>
     </div>

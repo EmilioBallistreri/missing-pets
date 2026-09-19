@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, MessageCircle, Eye, Award, Radio, Navigation } from 'lucide-react';
-import { STATUS_CONFIG, formatTimeAgo, buildWhatsAppLink, calculateDistanceKm, formatDistance } from '../utils/helpers';
+import { STATUS_CONFIG, formatTimeAgo, buildWhatsAppLink, calculateDistanceKm, formatDistance, getSpeciesLabel } from '../utils/helpers';
 
 export default function PetCard({ pet, onSelectPet, userCoords }) {
   const statusInfo = STATUS_CONFIG[pet.status] || STATUS_CONFIG.perdido;
@@ -51,7 +51,7 @@ export default function PetCard({ pet, onSelectPet, userCoords }) {
             {pet.name || (pet.status === 'encontrado' ? 'Mascota Encontrada' : 'Sin Nombre')}
           </h3>
           <span className="card-species-badge">
-            {pet.species === 'perro' ? '🐶 Perro' : pet.species === 'gato' ? '🐱 Gato' : '🐾 Otro'}
+            {getSpeciesLabel(pet)}
           </span>
         </div>
 

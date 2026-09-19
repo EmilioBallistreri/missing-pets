@@ -161,7 +161,7 @@ Enlace directo: ${shareUrl}`;
                 {pet.name ? pet.name.toUpperCase() : 'MASCOTA EXTRAVIADA'}
               </h2>
               <p style={{ fontSize: '1.05rem', fontWeight: 700, color: '#475569', marginBottom: '1rem' }}>
-                {pet.species === 'perro' ? 'Perro' : pet.species === 'gato' ? 'Gato' : 'Animal'} • {pet.breed} • {pet.gender}
+                {pet.species === 'perro' ? 'Perro' : pet.species === 'gato' ? 'Gato' : (pet.otherSpecies || 'Animal')} • {pet.breed} • {pet.gender}
               </p>
 
               <div className="flyer-info-box">
@@ -248,7 +248,7 @@ Enlace directo: ${shareUrl}`;
                 {pet.name ? pet.name.toUpperCase() : 'MASCOTA EXTRAVIADA'}
               </h2>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fecaca', marginBottom: '0.5rem' }}>
-                {pet.breed} • {pet.location?.neighborhood}
+                {pet.species === 'otro' && pet.otherSpecies ? `${pet.otherSpecies} • ` : ''}{pet.breed} • {pet.location?.neighborhood}
               </div>
 
               {pet.distinctiveFeatures && (
@@ -289,7 +289,9 @@ Enlace directo: ${shareUrl}`;
                 <img src={mainImage} alt={pet.name} style={{ width: '100%', height: '100%', minHeight: '130px', objectFit: 'cover', borderRadius: '12px' }} />
                 <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>{pet.name}</h2>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ef4444' }}>{pet.breed}</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ef4444' }}>
+                    {pet.species === 'otro' && pet.otherSpecies ? `${pet.otherSpecies} • ` : ''}{pet.breed}
+                  </div>
                   <div style={{ fontSize: '0.8rem', color: '#475569' }}>📍 {pet.location?.neighborhood}</div>
                   {pet.reward && (
                     <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#b45309' }}>💰 Recompensa {pet.reward}</div>

@@ -16,6 +16,7 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
   const [isExpressMode, setIsExpressMode] = useState(!isEditing && initialStatus === 'perdido');
   const [status, setStatus] = useState(initialPetData?.status || initialStatus);
   const [species, setSpecies] = useState(initialPetData?.species || 'perro');
+  const [otherSpecies, setOtherSpecies] = useState(initialPetData?.otherSpecies || '');
   const [name, setName] = useState(initialPetData?.name || '');
   const [breed, setBreed] = useState(initialPetData?.breed || '');
   const [gender, setGender] = useState(initialPetData?.gender || 'Macho');
@@ -26,12 +27,12 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
   const [description, setDescription] = useState(initialPetData?.description || '');
   const [reward, setReward] = useState(initialPetData?.reward || '');
 
-  // Location
-  const [city, setCity] = useState(initialPetData?.location?.city || 'Buenos Aires');
+  // Location (Córdoba por defecto)
+  const [city, setCity] = useState(initialPetData?.location?.city || 'Córdoba');
   const [neighborhood, setNeighborhood] = useState(initialPetData?.location?.neighborhood || '');
   const [address, setAddress] = useState(initialPetData?.location?.address || '');
-  const [lat, setLat] = useState(initialPetData?.location?.lat || -34.6037);
-  const [lng, setLng] = useState(initialPetData?.location?.lng || -58.3816);
+  const [lat, setLat] = useState(initialPetData?.location?.lat || -31.4201);
+  const [lng, setLng] = useState(initialPetData?.location?.lng || -64.1888);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsSuccess, setGpsSuccess] = useState(Boolean(initialPetData?.location?.lat));
 
@@ -72,9 +73,9 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
       (error) => {
         console.warn('Error al obtener GPS:', error);
         setGpsLoading(false);
-        setLat(-34.6037);
-        setLng(-58.3816);
-        setNeighborhood('Centro / CABA');
+        setLat(-31.4201);
+        setLng(-64.1888);
+        setNeighborhood('Centro / Córdoba');
         if (onShowToast) {
           onShowToast('⚠️ No se pudo acceder al GPS automáticamente. Puedes indicar tu barrio manualmente.');
         } else {
@@ -142,17 +143,26 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
       return;
     }
 
+    if (species === 'otro' && !otherSpecies.trim()) {
+      if (onShowToast) onShowToast('⚠️ Por favor especifica qué tipo de animal es.');
+      else alert('Por favor especifica qué tipo de animal es.');
+      return;
+    }
+
     const finalImages = images.length > 0 ? images : [
       species === 'gato'
         ? 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80'
-        : 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'
+        : species === 'otro'
+          ? 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=800&q=80'
+          : 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'
     ];
 
     const petData = {
       status,
       species,
+      otherSpecies: species === 'otro' ? otherSpecies.trim() : null,
       name: name.trim() || 'Mascota Encontrada',
-      breed: breed.trim() || 'Mestizo',
+      breed: breed.trim() || (species === 'otro' && otherSpecies.trim() ? otherSpecies.trim() : 'Mestizo'),
       gender,
       size,
       age: age.trim() || 'No especificada',
@@ -161,7 +171,7 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
       description: description.trim() || (status === 'perdido' ? 'Extraviado recientemente. Por favor avisar si lo ves.' : 'Encontrado en la vía pública buscando a sus dueños.'),
       reward: status === 'perdido' && reward.trim() ? reward.trim() : null,
       location: {
-        city: city.trim() || 'Buenos Aires',
+        city: city.trim() || 'Córdoba',
         neighborhood: neighborhood.trim() || 'Zona de búsqueda',
         address: address.trim() || neighborhood.trim() || 'Punto reportado',
         lat: Number(lat),
@@ -344,6 +354,23 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
                   <option value="otro">🐾 Otro animal</option>
                 </select>
               </div>
+
+              {species === 'otro' && (
+                <div className="form-group" style={{ animation: 'fadeIn 0.2s ease' }}>
+                  <label className="form-label" htmlFor="pub-other-species">
+                    ¿Qué tipo de animal es? *
+                  </label>
+                  <input
+                    id="pub-other-species"
+                    type="text"
+                    className="form-input"
+                    placeholder="Ej. Conejo, Loro, Hurón, Tortuga..."
+                    value={otherSpecies}
+                    onChange={(e) => setOtherSpecies(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
 
               <div className="form-group">
                 <label className="form-label" htmlFor="pub-phone">

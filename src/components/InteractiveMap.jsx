@@ -12,9 +12,9 @@ export default function InteractiveMap({ pets, onSelectPet, userCoords, proximit
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // Default center
-    const initialLat = userCoords?.lat || pets[0]?.location?.lat || -34.6037;
-    const initialLng = userCoords?.lng || pets[0]?.location?.lng || -58.3816;
+    // Default center (Córdoba Capital)
+    const initialLat = userCoords?.lat || pets[0]?.location?.lat || -31.4201;
+    const initialLng = userCoords?.lng || pets[0]?.location?.lng || -64.1888;
 
     // Initialize map if not already created
     if (!mapInstanceRef.current && mapContainerRef.current) {
@@ -90,9 +90,14 @@ export default function InteractiveMap({ pets, onSelectPet, userCoords, proximit
       const status = pet.status || 'perdido';
       const statusInfo = STATUS_CONFIG[status] || STATUS_CONFIG.perdido;
 
+      const isCat = pet.species === 'gato';
+      const isDog = pet.species === 'perro';
+      const otherLower = (pet.otherSpecies || '').toLowerCase();
+      const markerEmoji = isCat ? '🐱' : isDog ? '🐶' : otherLower.includes('conejo') ? '🐰' : otherLower.includes('loro') || otherLower.includes('ave') || otherLower.includes('pajaro') ? '🦜' : '🐾';
+
       const markerHtml = `
         <div class="custom-pet-marker marker-${status}" style="width: 36px; height: 36px; font-size: 16px;">
-          ${pet.species === 'gato' ? '🐱' : pet.species === 'perro' ? '🐶' : '🐾'}
+          ${markerEmoji}
         </div>
       `;
 

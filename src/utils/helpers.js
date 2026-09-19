@@ -49,6 +49,14 @@ export const SPECIES_CONFIG = {
   otro: { label: 'Otro', emoji: '🐾' }
 };
 
+export function getSpeciesLabel(pet) {
+  if (!pet) return '';
+  if (pet.species === 'perro') return '🐶 Perro';
+  if (pet.species === 'gato') return '🐱 Gato';
+  if (pet.otherSpecies) return `🐾 ${pet.otherSpecies}`;
+  return '🐾 Otro animal';
+}
+
 export const SIZES_CONFIG = {
   pequeño: 'Pequeño (hasta 10 kg)',
   mediano: 'Mediano (10 a 25 kg)',

@@ -4,7 +4,7 @@ import {
   Share2, Printer, CheckCircle, Radio, Sparkles, Trash2, Heart, Flag,
   ChevronLeft, ChevronRight, Edit3
 } from 'lucide-react';
-import { STATUS_CONFIG, formatTimeAgo, buildWhatsAppLink } from '../utils/helpers';
+import { STATUS_CONFIG, formatTimeAgo, buildWhatsAppLink, getSpeciesLabel } from '../utils/helpers';
 
 export default function PetDetailModal({
   pet,
@@ -385,7 +385,7 @@ export default function PetDetailModal({
               <div className="detail-param-row">
                 <div className="param-item">
                   <span className="param-label">Especie y Raza</span>
-                  <span className="param-value">{pet.species === 'perro' ? '🐶 Perro' : pet.species === 'gato' ? '🐱 Gato' : '🐾 Otro'} • {pet.breed}</span>
+                  <span className="param-value">{getSpeciesLabel(pet)} • {pet.breed}</span>
                 </div>
                 <div className="param-item">
                   <span className="param-label">Sexo y Edad</span>
