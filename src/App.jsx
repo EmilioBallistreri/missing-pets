@@ -46,6 +46,7 @@ export default function App() {
   // Modals state
   const [selectedPet, setSelectedPet] = useState(null);
   const [isPublishOpen, setIsPublishOpen] = useState(false);
+  const [editingPet, setEditingPet] = useState(null);
   const [publishInitialStatus, setPublishInitialStatus] = useState('perdido');
   const [sightingTargetPet, setSightingTargetPet] = useState(null);
   const [flyerTargetPet, setFlyerTargetPet] = useState(null);
@@ -74,6 +75,40 @@ export default function App() {
     }
     return () => document.body.classList.remove('modal-open');
   }, [selectedPet, isPublishOpen, sightingTargetPet, flyerTargetPet, isHelpOpen, celebrationPet, matchComparePet]);
+
+  // Synchronize deep-linking from window.location.hash (#pet-:id)
+  useEffect(() => {
+    const handleHashSync = () => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#pet-')) {
+        const petId = hash.replace('#pet-', '');
+        const target = pets.find((p) => String(p.id) === petId);
+        if (target) {
+          setSelectedPet(target);
+        }
+      } else if (!hash) {
+        setSelectedPet((prev) => (prev ? null : prev));
+      }
+    };
+
+    handleHashSync();
+    window.addEventListener('hashchange', handleHashSync);
+    return () => window.removeEventListener('hashchange', handleHashSync);
+  }, [pets]);
+
+  // Update browser URL hash when selectedPet changes from UI clicks
+  useEffect(() => {
+    if (selectedPet) {
+      const targetHash = `#pet-${selectedPet.id}`;
+      if (window.location.hash !== targetHash) {
+        window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${targetHash}`);
+      }
+    } else {
+      if (window.location.hash && window.location.hash.startsWith('#pet-')) {
+        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+      }
+    }
+  }, [selectedPet]);
 
   // Handle Dark Mode toggling
   useEffect(() => {
@@ -131,6 +166,26 @@ export default function App() {
     setSelectedPet(created);
   };
 
+  const handleEditPet = (pet) => {
+    setEditingPet(pet);
+    setIsPublishOpen(true);
+  };
+
+  const handleSavePet = (petData) => {
+    if (editingPet) {
+      const updated = PetStorage.updatePet(editingPet.id, petData);
+      setPets(PetStorage.getAll());
+      if (selectedPet && selectedPet.id === editingPet.id) {
+        setSelectedPet(updated);
+      }
+      setEditingPet(null);
+      setIsPublishOpen(false);
+      showToast('✓ Publicación actualizada con éxito.');
+    } else {
+      handleAddPet(petData);
+    }
+  };
+
   const handleUpdateStatus = (petId, newStatus) => {
     const updated = PetStorage.markStatus(petId, newStatus);
     setPets(PetStorage.getAll());
@@ -171,6 +226,7 @@ export default function App() {
   };
 
   const openPublishWithStatus = (status) => {
+    setEditingPet(null);
     setPublishInitialStatus(status);
     setIsPublishOpen(true);
   };
@@ -348,6 +404,7 @@ export default function App() {
             onSelectPet={setSelectedPet}
             userCoords={userCoords}
             proximityKm={proximityKm}
+            darkMode={darkMode}
           />
         )}
       </main>
@@ -393,6 +450,7 @@ export default function App() {
           onUpdateStatus={handleUpdateStatus}
           onDeletePet={handleDeletePet}
           onReportFlag={handleReportFlag}
+          onEditPet={handleEditPet}
           onShowToast={showToast}
         />
       )}
@@ -408,8 +466,12 @@ export default function App() {
       {isPublishOpen && (
         <PublishModal
           initialStatus={publishInitialStatus}
-          onClose={() => setIsPublishOpen(false)}
-          onSubmitPet={handleAddPet}
+          initialPetData={editingPet}
+          onClose={() => {
+            setIsPublishOpen(false);
+            setEditingPet(null);
+          }}
+          onSubmitPet={handleSavePet}
           onShowToast={showToast}
         />
       )}

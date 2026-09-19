@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Printer, Copy, Smartphone, Square, FileText } from 'lucide-react';
+import { X, Printer, Copy, Smartphone, Square, FileText, Share2 } from 'lucide-react';
 import { formatExactDate, getQrCodeUrl } from '../utils/helpers';
 
 export default function FlyerGeneratorModal({ pet, onClose, onShowToast }) {
@@ -11,8 +11,29 @@ export default function FlyerGeneratorModal({ pet, onClose, onShowToast }) {
     window.print();
   };
 
-  const shareUrl = `${window.location.origin}/#pet-${pet.id}`;
+  const shareUrl = `${window.location.origin}${window.location.pathname}#pet-${pet.id}`;
   const qrCodeImageUrl = getQrCodeUrl(shareUrl, 160);
+
+  const handleShareLink = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Cartel de búsqueda: ${pet.name || 'Mascota'}`,
+          text: `🚨 ¡Ayúdanos a encontrar a ${pet.name || 'esta mascota'}!`,
+          url: shareUrl
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      if (onShowToast) {
+        onShowToast('¡Enlace del cartel y ficha copiado! 🔗');
+      } else {
+        alert('¡Enlace copiado al portapapeles!');
+      }
+    }
+  };
 
   const handleCopySummary = () => {
     const text = `🚨 ¡SE BUSCA A ${pet.name?.toUpperCase() || 'ESTA MASCOTA'}! 🚨
@@ -21,7 +42,8 @@ Zona: ${pet.location?.neighborhood || pet.location?.address} (${pet.location?.ci
 Señas: ${pet.distinctiveFeatures || 'Sin señas especiales'}
 ${pet.reward ? `💰 RECOMPENSA: ${pet.reward}` : ''}
 Contacto urgente: ${pet.contact?.phone}
-Por favor comparte para que vuelva a casa.`;
+Por favor comparte para que vuelva a casa.
+Enlace directo: ${shareUrl}`;
 
     navigator.clipboard.writeText(text);
     if (onShowToast) {
@@ -73,6 +95,15 @@ Por favor comparte para que vuelva a casa.`;
               >
                 <Copy size={15} />
                 <span>Copiar Texto</span>
+              </button>
+              <button
+                className="btn-detail"
+                style={{ padding: '0.45rem 0.8rem', fontSize: '0.85rem' }}
+                onClick={handleShareLink}
+                title="Compartir enlace directo con código QR"
+              >
+                <Share2 size={15} />
+                <span>Compartir Link</span>
               </button>
             </div>
           </div>

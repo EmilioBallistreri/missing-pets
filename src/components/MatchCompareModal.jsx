@@ -48,7 +48,7 @@ export default function MatchCompareModal({ targetPet, matches, onClose }) {
               <div className="empty-icon">🔍</div>
               <h3 className="empty-title">Sin coincidencias cercanas por ahora</h3>
               <p className="empty-subtitle">
-                No encontramos mascotas de la misma especie reportadas como encontradas en un radio de 10 km.
+                No encontramos mascotas de la misma especie reportadas como {targetPet.status === 'perdido' ? 'encontradas' : 'perdidas'} en un radio cercano.
                 Te sugerimos generar el cartel de búsqueda con QR o compartirlo en redes.
               </p>
             </div>
@@ -79,13 +79,13 @@ export default function MatchCompareModal({ targetPet, matches, onClose }) {
                     fontSize: '0.78rem',
                     fontWeight: 800,
                     textTransform: 'uppercase',
-                    color: '#ef4444',
-                    background: 'rgba(239, 68, 68, 0.1)',
+                    color: targetPet.status === 'perdido' ? '#ef4444' : '#f59e0b',
+                    background: targetPet.status === 'perdido' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.12)',
                     padding: '0.3rem 0.6rem',
                     borderRadius: '6px',
                     width: 'fit-content'
                   }}>
-                    Tu Mascota ({targetPet.status})
+                    Tu Mascota ({targetPet.status === 'perdido' ? 'Perdida' : 'Encontrada'})
                   </div>
 
                   <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
@@ -112,13 +112,13 @@ export default function MatchCompareModal({ targetPet, matches, onClose }) {
                         fontSize: '0.78rem',
                         fontWeight: 800,
                         textTransform: 'uppercase',
-                        color: '#f59e0b',
-                        background: 'rgba(245, 158, 11, 0.12)',
+                        color: candidate.status === 'perdido' ? '#ef4444' : '#f59e0b',
+                        background: candidate.status === 'perdido' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)',
                         padding: '0.3rem 0.6rem',
                         borderRadius: '6px',
                         width: 'fit-content'
                       }}>
-                        Mascota Encontrada
+                        Mascota {candidate.status === 'perdido' ? 'Perdida (Buscada)' : 'Encontrada (En Resguardo)'}
                       </div>
 
                       <div style={{
@@ -138,7 +138,7 @@ export default function MatchCompareModal({ targetPet, matches, onClose }) {
                       <img src={candidateImage} alt={candidate.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
 
-                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>{candidate.name || 'Animal en resguardo'}</h3>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>{candidate.name || (candidate.status === 'perdido' ? 'Mascota perdida' : 'Animal en resguardo')}</h3>
                     <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
                       {candidate.breed} • {candidate.gender} • {candidate.size}
                     </div>
@@ -165,7 +165,7 @@ export default function MatchCompareModal({ targetPet, matches, onClose }) {
                         }}
                       >
                         <MessageCircle size={18} />
-                        <span>Contactar al Rescatista</span>
+                        <span>{targetPet.status === 'perdido' ? 'Contactar al Rescatista' : 'Contactar a la Familia / Dueño'}</span>
                       </a>
                     )}
                   </div>

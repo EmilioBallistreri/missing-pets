@@ -2,16 +2,16 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { STATUS_CONFIG, calculateDistanceKm, formatDistance } from '../utils/helpers';
 
-export default function InteractiveMap({ pets, onSelectPet, userCoords, proximityKm }) {
+export default function InteractiveMap({ pets, onSelectPet, userCoords, proximityKm, darkMode }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const tileLayerRef = useRef(null);
   const markersLayerRef = useRef(null);
   const userLayerRef = useRef(null);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // Default center
     // Default center
     const initialLat = userCoords?.lat || pets[0]?.location?.lat || -34.6037;
     const initialLng = userCoords?.lng || pets[0]?.location?.lng || -58.3816;
@@ -28,7 +28,11 @@ export default function InteractiveMap({ pets, onSelectPet, userCoords, proximit
         scrollWheelZoom: true
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      const tileUrl = darkMode
+        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+      tileLayerRef.current = L.tileLayer(tileUrl, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
         maxZoom: 19
       }).addTo(map);
@@ -150,7 +154,17 @@ export default function InteractiveMap({ pets, onSelectPet, userCoords, proximit
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [pets, onSelectPet, userCoords, proximityKm]);
+  }, [pets, onSelectPet, userCoords, proximityKm, darkMode]);
+
+  // Synchronize Leaflet tile layer with Dark / Light theme seamlessly
+  useEffect(() => {
+    if (tileLayerRef.current) {
+      const tileUrl = darkMode
+        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      tileLayerRef.current.setUrl(tileUrl);
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     const container = mapContainerRef.current;

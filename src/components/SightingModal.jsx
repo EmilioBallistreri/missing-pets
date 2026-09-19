@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Radio, Send, Clock } from 'lucide-react';
+import { X, Radio, Send, Clock, Camera } from 'lucide-react';
+import { compressImage } from '../utils/helpers';
 
 export default function SightingModal({ pet, onClose, onSubmitSighting, onShowToast }) {
   const [locationText, setLocationText] = useState('');
@@ -8,8 +9,25 @@ export default function SightingModal({ pet, onClose, onSubmitSighting, onShowTo
   const [timeApprox, setTimeApprox] = useState('Recientemente (hace minutos)');
   const [reportedBy, setReportedBy] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
+  const [isCompressingPhoto, setIsCompressingPhoto] = useState(false);
 
   if (!pet) return null;
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsCompressingPhoto(true);
+    try {
+      const dataUrl = await compressImage(file, 800, 0.75);
+      setPhotoUrl(dataUrl);
+      if (onShowToast) onShowToast('✓ Foto capturada y optimizada con éxito.');
+    } catch (err) {
+      console.error(err);
+      if (onShowToast) onShowToast('⚠️ Error al procesar la foto.');
+    } finally {
+      setIsCompressingPhoto(false);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -141,18 +159,81 @@ export default function SightingModal({ pet, onClose, onSubmitSighting, onShowTo
 
             <div className="form-group">
               <label className="form-label" htmlFor="sighting-photo">
-                Foto del momento (enlace web opcional)
+                Foto o captura del momento (Opcional)
               </label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input
-                  id="sighting-photo"
-                  type="url"
-                  className="form-input"
-                  placeholder="https://... o foto tomada en la calle"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
-                />
-              </div>
+
+              {photoUrl ? (
+                <div style={{ position: 'relative', display: 'inline-block', width: 'fit-content' }}>
+                  <img
+                    src={photoUrl}
+                    alt="Foto del avistamiento"
+                    style={{ width: '120px', height: '90px', objectFit: 'cover', borderRadius: 'var(--radius-sm)', border: '2px solid var(--border-medium)' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPhotoUrl('')}
+                    style={{
+                      position: 'absolute',
+                      top: '-6px',
+                      right: '-6px',
+                      background: '#ef4444',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '22px',
+                      height: '22px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                    title="Quitar foto"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <label
+                      htmlFor="sighting-file-input"
+                      className="filter-btn-subtle"
+                      style={{
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        padding: '0.5rem 0.85rem',
+                        fontSize: '0.85rem',
+                        background: 'var(--bg-surface-elevated)'
+                      }}
+                    >
+                      <Camera size={16} />
+                      <span>{isCompressingPhoto ? 'Procesando foto...' : 'Tomar / Subir Foto'}</span>
+                    </label>
+                    <input
+                      id="sighting-file-input"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handlePhotoUpload}
+                      style={{ display: 'none' }}
+                      disabled={isCompressingPhoto}
+                    />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>o ingresa un enlace web:</span>
+                  </div>
+
+                  <input
+                    id="sighting-photo"
+                    type="url"
+                    className="form-input"
+                    placeholder="https://... o foto en línea"
+                    value={photoUrl.startsWith('data:') ? '' : photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="form-group">

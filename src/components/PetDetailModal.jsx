@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
   X, MapPin, Phone, MessageCircle,
-  Share2, Printer, CheckCircle, Radio, Sparkles, Trash2, Heart, Flag
+  Share2, Printer, CheckCircle, Radio, Sparkles, Trash2, Heart, Flag,
+  ChevronLeft, ChevronRight, Edit3
 } from 'lucide-react';
 import { STATUS_CONFIG, formatTimeAgo, buildWhatsAppLink } from '../utils/helpers';
 
@@ -14,6 +15,7 @@ export default function PetDetailModal({
   onUpdateStatus,
   onDeletePet,
   onReportFlag,
+  onEditPet,
   onShowToast
 }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -78,15 +80,31 @@ export default function PetDetailModal({
             </h2>
           </div>
 
-          <button
-            onClick={handleShare}
-            className="filter-btn-subtle"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem' }}
-            title="Compartir publicación"
-          >
-            <Share2 size={16} />
-            <span>Compartir</span>
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {onEditPet && (
+              <button
+                type="button"
+                id="btn-edit-pet-details"
+                onClick={() => onEditPet(pet)}
+                className="filter-btn-subtle"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.85rem' }}
+                title="Editar datos de la publicación"
+              >
+                <Edit3 size={15} />
+                <span>Editar</span>
+              </button>
+            )}
+
+            <button
+              onClick={handleShare}
+              className="filter-btn-subtle"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem' }}
+              title="Compartir publicación"
+            >
+              <Share2 size={16} />
+              <span>Compartir</span>
+            </button>
+          </div>
         </div>
 
         {/* Modal Body */}
@@ -119,14 +137,101 @@ export default function PetDetailModal({
                 </div>
               )}
 
-              <img
-                src={showRescueBefore && pet.rescueBeforeImage ? pet.rescueBeforeImage : images[activeImageIndex]}
-                alt={pet.name || pet.breed}
-                className="detail-main-image"
-              />
+              {/* Main Image with Navigation Overlays */}
+              <div style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                <img
+                  src={showRescueBefore && pet.rescueBeforeImage ? pet.rescueBeforeImage : images[activeImageIndex]}
+                  alt={pet.name || pet.breed}
+                  className="detail-main-image"
+                  style={{ width: '100%', display: 'block' }}
+                />
+
+                {!showRescueBefore && images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Foto anterior"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+                      }}
+                      style={{
+                        position: 'absolute',
+                        left: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'rgba(15, 23, 42, 0.7)',
+                        backdropFilter: 'blur(4px)',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: '36px',
+                        height: '36px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px solid rgba(255, 255, 255, 0.25)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        cursor: 'pointer',
+                        zIndex: 2
+                      }}
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+
+                    <button
+                      type="button"
+                      aria-label="Foto siguiente"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+                      }}
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'rgba(15, 23, 42, 0.7)',
+                        backdropFilter: 'blur(4px)',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: '36px',
+                        height: '36px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px solid rgba(255, 255, 255, 0.25)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        cursor: 'pointer',
+                        zIndex: 2
+                      }}
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+
+                    <span
+                      style={{
+                        position: 'absolute',
+                        bottom: '8px',
+                        right: '8px',
+                        background: 'rgba(15, 23, 42, 0.75)',
+                        backdropFilter: 'blur(4px)',
+                        color: 'white',
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        zIndex: 2
+                      }}
+                    >
+                      {activeImageIndex + 1} / {images.length}
+                    </span>
+                  </>
+                )}
+              </div>
 
               {!showRescueBefore && images.length > 1 && (
-                <div className="detail-thumbnails">
+                <div className="detail-thumbnails" style={{ marginTop: '0.5rem' }}>
                   {images.map((img, idx) => (
                     <img
                       key={idx}

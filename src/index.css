@@ -1540,6 +1540,31 @@ img {
   margin-bottom: 0.45rem;
 }
 
+/* Leaflet Dark Mode Popup Styling */
+[data-theme='dark'] .leaflet-popup-content-wrapper,
+[data-theme='dark'] .leaflet-popup-tip {
+  background: var(--bg-surface-elevated);
+  color: var(--text-main);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-subtle);
+}
+
+[data-theme='dark'] .leaflet-popup-close-button {
+  color: var(--text-muted) !important;
+}
+
+[data-theme='dark'] .map-popup-title {
+  color: var(--text-main);
+}
+
+[data-theme='dark'] .map-popup-desc {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .leaflet-container {
+  background: #0b1120;
+}
+
 /* ==========================================================================
    FLYER / CARTELES MULTIFORMATO
    ========================================================================== */

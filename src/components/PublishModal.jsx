@@ -11,38 +11,39 @@ const PRESET_SAMPLE_PHOTOS = [
   { url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80', label: 'Perro galgo' },
 ];
 
-export default function PublishModal({ initialStatus = 'perdido', onClose, onSubmitPet, onShowToast }) {
-  const [isExpressMode, setIsExpressMode] = useState(initialStatus === 'perdido');
-  const [status, setStatus] = useState(initialStatus);
-  const [species, setSpecies] = useState('perro');
-  const [name, setName] = useState('');
-  const [breed, setBreed] = useState('');
-  const [gender, setGender] = useState('Macho');
-  const [size, setSize] = useState('mediano');
-  const [age, setAge] = useState('');
-  const [color, setColor] = useState('');
-  const [distinctiveFeatures, setDistinctiveFeatures] = useState('');
-  const [description, setDescription] = useState('');
-  const [reward, setReward] = useState('');
+export default function PublishModal({ initialStatus = 'perdido', initialPetData = null, onClose, onSubmitPet, onShowToast }) {
+  const isEditing = Boolean(initialPetData);
+  const [isExpressMode, setIsExpressMode] = useState(!isEditing && initialStatus === 'perdido');
+  const [status, setStatus] = useState(initialPetData?.status || initialStatus);
+  const [species, setSpecies] = useState(initialPetData?.species || 'perro');
+  const [name, setName] = useState(initialPetData?.name || '');
+  const [breed, setBreed] = useState(initialPetData?.breed || '');
+  const [gender, setGender] = useState(initialPetData?.gender || 'Macho');
+  const [size, setSize] = useState(initialPetData?.size || 'mediano');
+  const [age, setAge] = useState(initialPetData?.age || '');
+  const [color, setColor] = useState(initialPetData?.color || '');
+  const [distinctiveFeatures, setDistinctiveFeatures] = useState(initialPetData?.distinctiveFeatures || '');
+  const [description, setDescription] = useState(initialPetData?.description || '');
+  const [reward, setReward] = useState(initialPetData?.reward || '');
 
   // Location
-  const [city, setCity] = useState('Buenos Aires');
-  const [neighborhood, setNeighborhood] = useState('');
-  const [address, setAddress] = useState('');
-  const [lat, setLat] = useState(-34.6037);
-  const [lng, setLng] = useState(-58.3816);
+  const [city, setCity] = useState(initialPetData?.location?.city || 'Buenos Aires');
+  const [neighborhood, setNeighborhood] = useState(initialPetData?.location?.neighborhood || '');
+  const [address, setAddress] = useState(initialPetData?.location?.address || '');
+  const [lat, setLat] = useState(initialPetData?.location?.lat || -34.6037);
+  const [lng, setLng] = useState(initialPetData?.location?.lng || -58.3816);
   const [gpsLoading, setGpsLoading] = useState(false);
-  const [gpsSuccess, setGpsSuccess] = useState(false);
+  const [gpsSuccess, setGpsSuccess] = useState(Boolean(initialPetData?.location?.lat));
 
   // Images
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState(initialPetData?.images || []);
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
   // Contact
-  const [contactName, setContactName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [contactName, setContactName] = useState(initialPetData?.contact?.name || '');
+  const [phone, setPhone] = useState(initialPetData?.contact?.phone || '');
+  const [email, setEmail] = useState(initialPetData?.contact?.email || '');
 
   // Auto-detect GPS coordinates
   const handleDetectGPS = () => {
@@ -194,28 +195,36 @@ export default function PublishModal({ initialStatus = 'perdido', onClose, onSub
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div>
-              <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Publicar Reporte de Mascota</h2>
+              <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>
+                {isEditing ? 'Editar Publicación' : 'Publicar Reporte de Mascota'}
+              </h2>
               <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                {isExpressMode ? '⚡ Modo Express: activa la búsqueda en 30 segundos con tu GPS' : 'Completa todos los detalles para una ficha completa'}
+                {isEditing
+                  ? 'Modifica los datos, fotos o información de contacto de esta mascota.'
+                  : isExpressMode
+                    ? '⚡ Modo Express: activa la búsqueda en 30 segundos con tu GPS'
+                    : 'Completa todos los detalles para una ficha completa'}
               </p>
             </div>
 
-            {/* Mode Toggle Button */}
-            <button
-              type="button"
-              id="btn-toggle-express-mode"
-              className="status-pill"
-              onClick={() => setIsExpressMode(!isExpressMode)}
-              style={{
-                background: isExpressMode ? '#fef2f2' : 'var(--bg-surface-soft)',
-                borderColor: isExpressMode ? '#ef4444' : 'var(--border-medium)',
-                color: isExpressMode ? '#dc2626' : 'var(--text-main)',
-                fontWeight: 700
-              }}
-            >
-              <Zap size={16} />
-              <span>{isExpressMode ? 'Modo Express Activo' : 'Cambiar a Modo Express'}</span>
-            </button>
+            {/* Mode Toggle Button only if creating new */}
+            {!isEditing && (
+              <button
+                type="button"
+                id="btn-toggle-express-mode"
+                className="status-pill"
+                onClick={() => setIsExpressMode(!isExpressMode)}
+                style={{
+                  background: isExpressMode ? '#fef2f2' : 'var(--bg-surface-soft)',
+                  borderColor: isExpressMode ? '#ef4444' : 'var(--border-medium)',
+                  color: isExpressMode ? '#dc2626' : 'var(--text-main)',
+                  fontWeight: 700
+                }}
+              >
+                <Zap size={16} />
+                <span>{isExpressMode ? 'Modo Express Activo' : 'Cambiar a Modo Express'}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -613,7 +622,13 @@ export default function PublishModal({ initialStatus = 'perdido', onClose, onSub
             </button>
             <button type="submit" className="publish-btn" id="btn-submit-pet" disabled={isUploading}>
               <Check size={18} />
-              <span>{isExpressMode ? '🚨 Activar Búsqueda Inmediata' : 'Publicar Mascota'}</span>
+              <span>
+                {isEditing
+                  ? 'Guardar Cambios'
+                  : isExpressMode
+                    ? '🚨 Activar Búsqueda Inmediata'
+                    : 'Publicar Mascota'}
+              </span>
             </button>
           </div>
         </form>
