@@ -199,3 +199,60 @@ export function compressImage(file, maxWidth = 900, quality = 0.78) {
     reader.readAsDataURL(file);
   });
 }
+
+/**
+ * Realiza geocodificación inversa mediante OpenStreetMap Nominatim
+ * Convierte latitud y longitud en barrio, calle y localidad
+ */
+export async function reverseGeocode(lat, lng) {
+  if (!lat || !lng) return null;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'Accept-Language': 'es,es-ES;q=0.9,en;q=0.8'
+      }
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    const addr = data.address || {};
+
+    const street = addr.road || addr.pedestrian || addr.street || '';
+    const houseNumber = addr.house_number ? ` ${addr.house_number}` : '';
+    const fullStreet = street ? `${street}${houseNumber}` : '';
+
+    const neighborhood =
+      addr.neighbourhood ||
+      addr.suburb ||
+      addr.quarter ||
+      addr.city_district ||
+      addr.residential ||
+      '';
+
+    const city =
+      addr.city ||
+      addr.town ||
+      addr.village ||
+      addr.municipality ||
+      addr.state ||
+      'Córdoba';
+
+    return {
+      address: fullStreet || neighborhood || 'Punto GPS',
+      neighborhood: neighborhood || fullStreet || 'Zona GPS detectada',
+      city: city,
+      displayName: data.display_name
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.warn('Geocodificación inversa no disponible:', err);
+    return null;
+  }
+}
+

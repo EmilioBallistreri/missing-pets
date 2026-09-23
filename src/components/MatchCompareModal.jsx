@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Sparkles, MessageCircle } from 'lucide-react';
 import { buildWhatsAppLink, formatDistance } from '../utils/helpers';
 
 export default function MatchCompareModal({ targetPet, matches, onClose }) {
   const [selectedMatchIndex, setSelectedMatchIndex] = useState(0);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   if (!targetPet) return null;
 

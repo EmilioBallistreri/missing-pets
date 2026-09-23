@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X, MapPin, Phone, MessageCircle,
   Share2, Printer, CheckCircle, Radio, Sparkles, Trash2, Heart, Flag,
@@ -23,6 +23,16 @@ export default function PetDetailModal({
   const [flagSubmitted, setFlagSubmitted] = useState(false);
   const [showFlagOptions, setShowFlagOptions] = useState(false);
   const [flagReason, setFlagReason] = useState('estafa_recompensa');
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   if (!pet) return null;
 

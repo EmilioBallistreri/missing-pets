@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Share2 } from 'lucide-react';
 
 const STATIC_CONFETTI = [
@@ -20,6 +20,16 @@ const STATIC_CONFETTI = [
 ];
 
 export default function CelebrationModal({ pet, statusType, onClose, onShowToast }) {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   if (!pet) return null;
 
   const isReunited = statusType === 'reunido';

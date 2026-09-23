@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Upload, AlertCircle, Search, Heart, Check, Zap, Navigation, PlusCircle } from 'lucide-react';
-import { compressImage } from '../utils/helpers';
+import { compressImage, reverseGeocode } from '../utils/helpers';
 
 const PRESET_SAMPLE_PHOTOS = [
   { url: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80', label: 'Perro beagle' },
@@ -46,7 +46,18 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
   const [phone, setPhone] = useState(initialPetData?.contact?.phone || '');
   const [email, setEmail] = useState(initialPetData?.contact?.email || '');
 
-  // Auto-detect GPS coordinates
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  // Auto-detect GPS coordinates with reverse geocoding
   const handleDetectGPS = () => {
     if (!navigator.geolocation) {
       if (onShowToast) onShowToast('⚠️ La geolocalización no es compatible con este navegador.');
@@ -55,20 +66,32 @@ export default function PublishModal({ initialStatus = 'perdido', initialPetData
     }
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
         setLat(userLat);
         setLng(userLng);
-        setGpsLoading(false);
         setGpsSuccess(true);
-        if (!neighborhood) {
-          setNeighborhood('Ubicación detectada por GPS');
+
+        // Geocodificación inversa con Nominatim
+        const geoInfo = await reverseGeocode(userLat, userLng);
+        if (geoInfo) {
+          if (geoInfo.neighborhood) setNeighborhood(geoInfo.neighborhood);
+          if (geoInfo.address) setAddress(geoInfo.address);
+          if (geoInfo.city) setCity(geoInfo.city);
+          if (onShowToast) {
+            onShowToast(`📍 Ubicación detectada: ${geoInfo.neighborhood || geoInfo.address}`);
+          }
+        } else {
+          if (!neighborhood) {
+            setNeighborhood('Ubicación detectada por GPS');
+          }
+          if (!address) {
+            setAddress(`Coordenadas precisas (${userLat.toFixed(4)}, ${userLng.toFixed(4)})`);
+          }
+          if (onShowToast) onShowToast('📍 Coordenadas GPS fijadas con precisión.');
         }
-        if (!address) {
-          setAddress(`Coordenadas precisas (${userLat.toFixed(4)}, ${userLng.toFixed(4)})`);
-        }
-        if (onShowToast) onShowToast('📍 Coordenadas GPS fijadas con precisión.');
+        setGpsLoading(false);
       },
       (error) => {
         console.warn('Error al obtener GPS:', error);

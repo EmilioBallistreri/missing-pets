@@ -1,31 +1,28 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import Navbar from './components/Navbar';
 import HeroBanner from './components/HeroBanner';
 import PetFilters from './components/PetFilters';
 import PetCard from './components/PetCard';
-import InteractiveMap from './components/InteractiveMap';
 import PetDetailModal from './components/PetDetailModal';
 import PublishModal from './components/PublishModal';
 import SightingModal from './components/SightingModal';
-import FlyerGeneratorModal from './components/FlyerGeneratorModal';
-import HowToHelpModal from './components/HowToHelpModal';
 import CelebrationModal from './components/CelebrationModal';
-import MatchCompareModal from './components/MatchCompareModal';
 import ToastNotification from './components/ToastNotification';
 import MobileBottomNav from './components/MobileBottomNav';
-import { PetStorage } from './services/petStorage';
-import { calculateDistanceKm, normalizeText } from './utils/helpers';
+import { usePets } from './hooks/usePets';
+import { usePetFilters } from './hooks/usePetFilters';
+
+// Code-splitting de componentes pesados o bajo demanda
+const InteractiveMap = lazy(() => import('./components/InteractiveMap'));
+const FlyerGeneratorModal = lazy(() => import('./components/FlyerGeneratorModal'));
+const MatchCompareModal = lazy(() => import('./components/MatchCompareModal'));
+const HowToHelpModal = lazy(() => import('./components/HowToHelpModal'));
 
 export default function App() {
-  const [pets, setPets] = useState(() => PetStorage.getAll());
   const [activeView, setActiveView] = useState('grid'); // 'grid' | 'map'
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('patitas_theme') === 'dark';
   });
-
-  // User GPS coordinates & Proximity filter
-  const [userCoords, setUserCoords] = useState(null);
-  const [proximityKm, setProximityKm] = useState(0); // 0 = sin límite
 
   // Toast Notification state
   const [toast, setToast] = useState(null);
@@ -43,6 +40,38 @@ export default function App() {
     }
   }, [toast]);
 
+  // Hook centralizado de mascotas
+  const {
+    pets,
+    stats,
+    counts,
+    addPet,
+    updatePet,
+    updateStatus,
+    addSighting,
+    deletePet,
+    reportFlag,
+    resetData,
+    findMatches,
+  } = usePets();
+
+  // Hook centralizado de filtros, proximidad GPS y búsqueda
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedStatus,
+    setSelectedStatus,
+    selectedSpecies,
+    setSelectedSpecies,
+    userCoords,
+    proximityKm,
+    setProximityKm,
+    handleDetectUserLocation,
+    handleClearProximity,
+    resetFilters,
+    filteredPets,
+  } = usePetFilters(pets, showToast);
+
   // Modals state
   const [selectedPet, setSelectedPet] = useState(null);
   const [isPublishOpen, setIsPublishOpen] = useState(false);
@@ -54,11 +83,6 @@ export default function App() {
   const [celebrationPet, setCelebrationPet] = useState(null);
   const [celebrationType, setCelebrationType] = useState('reunido');
   const [matchComparePet, setMatchComparePet] = useState(null);
-
-  // Filters state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('todos'); // 'todos' | 'perdido' | 'encontrado' | 'adopcion'
-  const [selectedSpecies, setSelectedSpecies] = useState('todos'); // 'todos' | 'perro' | 'gato' | 'otro'
 
   // Prevent body scroll when any modal is open
   useEffect(() => {
@@ -119,55 +143,10 @@ export default function App() {
     }
   }, [darkMode]);
 
-  // GPS User Location Detection
-  const handleDetectUserLocation = () => {
-    if (!navigator.geolocation) {
-      showToast('⚠️ Tu navegador no soporta geolocalización.', 'warning');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude
-        };
-        setUserCoords(coords);
-        setProximityKm(5); // Activar por defecto a 5 km
-        showToast('📍 Ubicación GPS detectada. Filtrando a 5 km a la redonda.');
-      },
-      (err) => {
-        console.warn('GPS error, usando centro de Córdoba de prueba:', err);
-        const coords = { lat: -31.4201, lng: -64.1888 };
-        setUserCoords(coords);
-        setProximityKm(5);
-        showToast('📍 Ubicación fijada en Centro / Córdoba.', 'warning');
-      },
-      { timeout: 6000 }
-    );
-  };
-
-  const handleClearProximity = () => {
-    setUserCoords(null);
-    setProximityKm(0);
-    showToast('Filtro de proximidad GPS desactivado.');
-  };
-
-  // CRUD Handlers
-  const handleAddPet = (newPetData) => {
-    const created = PetStorage.addPet(newPetData);
-    setPets(PetStorage.getAll());
-    setSelectedPet(created);
-  };
-
-  const handleEditPet = (pet) => {
-    setEditingPet(pet);
-    setIsPublishOpen(true);
-  };
-
+  // Handlers para acciones de mascotas
   const handleSavePet = (petData) => {
     if (editingPet) {
-      const updated = PetStorage.updatePet(editingPet.id, petData);
-      setPets(PetStorage.getAll());
+      const updated = updatePet(editingPet.id, petData);
       if (selectedPet && selectedPet.id === editingPet.id) {
         setSelectedPet(updated);
       }
@@ -175,13 +154,18 @@ export default function App() {
       setIsPublishOpen(false);
       showToast('✓ Publicación actualizada con éxito.');
     } else {
-      handleAddPet(petData);
+      const created = addPet(petData);
+      setSelectedPet(created);
     }
   };
 
+  const handleEditPet = (pet) => {
+    setEditingPet(pet);
+    setIsPublishOpen(true);
+  };
+
   const handleUpdateStatus = (petId, newStatus) => {
-    const updated = PetStorage.markStatus(petId, newStatus);
-    setPets(PetStorage.getAll());
+    const updated = updateStatus(petId, newStatus);
     if (selectedPet && selectedPet.id === petId) {
       setSelectedPet(updated);
     }
@@ -192,28 +176,25 @@ export default function App() {
   };
 
   const handleAddSighting = (petId, sightingData) => {
-    const updated = PetStorage.addSighting(petId, sightingData);
-    setPets(PetStorage.getAll());
+    const updated = addSighting(petId, sightingData);
     if (selectedPet && selectedPet.id === petId) {
       setSelectedPet(updated);
     }
   };
 
   const handleDeletePet = (petId) => {
-    const updated = PetStorage.deletePet(petId);
-    setPets(updated);
+    deletePet(petId);
     setSelectedPet(null);
     showToast('La publicación ha sido eliminada.');
   };
 
   const handleReportFlag = (petId, flagData) => {
-    PetStorage.addFlag(petId, flagData);
+    reportFlag(petId, flagData);
     showToast('Gracias. Tu reporte de moderación ha sido registrado.');
   };
 
   const handleResetData = () => {
-    const defaults = PetStorage.resetDefaults();
-    setPets(defaults);
+    resetData();
     setSelectedPet(null);
     showToast('✓ Datos de muestra restaurados con éxito.');
   };
@@ -224,76 +205,11 @@ export default function App() {
     setIsPublishOpen(true);
   };
 
-  // Stats calculation directly from memory
-  const stats = useMemo(() => {
-    return PetStorage.getStats(pets);
-  }, [pets]);
-
-  // Counts for status tabs directly from memory
-  const counts = useMemo(() => {
-    return {
-      todos: pets.length,
-      perdidos: pets.filter((p) => p.status === 'perdido').length,
-      encontrados: pets.filter((p) => p.status === 'encontrado').length,
-      adopcion: pets.filter((p) => p.status === 'adopcion').length,
-    };
-  }, [pets]);
-
-  // Potential matches for MatchCompareModal
+  // Coincidencias para MatchCompareModal
   const currentMatches = useMemo(() => {
     if (!matchComparePet) return [];
-    return PetStorage.findMatches(matchComparePet.id);
-  }, [matchComparePet]);
-
-  // Filtered & Sorted Pets with diacritic-insensitive search
-  const filteredPets = useMemo(() => {
-    return pets
-      .filter((pet) => {
-        if (selectedStatus !== 'todos' && pet.status !== selectedStatus) {
-          return false;
-        }
-        if (selectedSpecies !== 'todos' && pet.species !== selectedSpecies) {
-          return false;
-        }
-
-        if (proximityKm > 0 && userCoords && pet.location?.lat && pet.location?.lng) {
-          const dist = calculateDistanceKm(
-            userCoords.lat,
-            userCoords.lng,
-            pet.location.lat,
-            pet.location.lng
-          );
-          if (dist !== null && dist > proximityKm) {
-            return false;
-          }
-        }
-
-        if (searchQuery.trim()) {
-          const q = normalizeText(searchQuery);
-          const matchName = normalizeText(pet.name).includes(q);
-          const matchBreed = normalizeText(pet.breed).includes(q);
-          const matchOtherSpecies = normalizeText(pet.otherSpecies).includes(q);
-          const matchNeighborhood = normalizeText(pet.location?.neighborhood).includes(q);
-          const matchCity = normalizeText(pet.location?.city).includes(q);
-          const matchDesc = normalizeText(pet.description).includes(q);
-          const matchDistinctive = normalizeText(pet.distinctiveFeatures).includes(q);
-
-          if (!matchName && !matchBreed && !matchOtherSpecies && !matchNeighborhood && !matchCity && !matchDesc && !matchDistinctive) {
-            return false;
-          }
-        }
-
-        return true;
-      })
-      .sort((a, b) => {
-        if (proximityKm > 0 && userCoords) {
-          const distA = a.location?.lat ? calculateDistanceKm(userCoords.lat, userCoords.lng, a.location.lat, a.location.lng) : 9999;
-          const distB = b.location?.lat ? calculateDistanceKm(userCoords.lat, userCoords.lng, b.location.lat, b.location.lng) : 9999;
-          return distA - distB;
-        }
-        return new Date(b.dateReported) - new Date(a.dateReported);
-      });
-  }, [pets, selectedStatus, selectedSpecies, searchQuery, proximityKm, userCoords]);
+    return findMatches(matchComparePet.id);
+  }, [matchComparePet, findMatches]);
 
   return (
     <div className="app-container">
@@ -357,12 +273,7 @@ export default function App() {
                 <button
                   className="btn-detail"
                   style={{ margin: '0 auto' }}
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedStatus('todos');
-                    setSelectedSpecies('todos');
-                    setProximityKm(0);
-                  }}
+                  onClick={resetFilters}
                 >
                   Restablecer filtros de búsqueda
                 </button>
@@ -370,13 +281,20 @@ export default function App() {
             )}
           </div>
         ) : (
-          <InteractiveMap
-            pets={filteredPets}
-            onSelectPet={setSelectedPet}
-            userCoords={userCoords}
-            proximityKm={proximityKm}
-            darkMode={darkMode}
-          />
+          <Suspense fallback={
+            <div style={{ height: '550px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', background: 'var(--bg-surface)', borderRadius: 'var(--radius-lg)' }}>
+              <div style={{ fontSize: '2rem' }}>🗺️</div>
+              <p style={{ fontWeight: 700, color: 'var(--text-muted)' }}>Cargando mapa interactivo...</p>
+            </div>
+          }>
+            <InteractiveMap
+              pets={filteredPets}
+              onSelectPet={setSelectedPet}
+              userCoords={userCoords}
+              proximityKm={proximityKm}
+              darkMode={darkMode}
+            />
+          </Suspense>
         )}
       </main>
 
@@ -427,11 +345,13 @@ export default function App() {
       )}
 
       {matchComparePet && (
-        <MatchCompareModal
-          targetPet={matchComparePet}
-          matches={currentMatches}
-          onClose={() => setMatchComparePet(null)}
-        />
+        <Suspense fallback={null}>
+          <MatchCompareModal
+            targetPet={matchComparePet}
+            matches={currentMatches}
+            onClose={() => setMatchComparePet(null)}
+          />
+        </Suspense>
       )}
 
       {isPublishOpen && (
@@ -457,11 +377,13 @@ export default function App() {
       )}
 
       {flyerTargetPet && (
-        <FlyerGeneratorModal
-          pet={flyerTargetPet}
-          onClose={() => setFlyerTargetPet(null)}
-          onShowToast={showToast}
-        />
+        <Suspense fallback={null}>
+          <FlyerGeneratorModal
+            pet={flyerTargetPet}
+            onClose={() => setFlyerTargetPet(null)}
+            onShowToast={showToast}
+          />
+        </Suspense>
       )}
 
       {celebrationPet && (
@@ -474,10 +396,12 @@ export default function App() {
       )}
 
       {isHelpOpen && (
-        <HowToHelpModal
-          onClose={() => setIsHelpOpen(false)}
-          onResetData={handleResetData}
-        />
+        <Suspense fallback={null}>
+          <HowToHelpModal
+            onClose={() => setIsHelpOpen(false)}
+            onResetData={handleResetData}
+          />
+        </Suspense>
       )}
 
       {/* Floating Toast Notification */}

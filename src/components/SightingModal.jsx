@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Radio, Send, Clock, Camera } from 'lucide-react';
 import { compressImage } from '../utils/helpers';
 
@@ -10,6 +10,16 @@ export default function SightingModal({ pet, onClose, onSubmitSighting, onShowTo
   const [reportedBy, setReportedBy] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [isCompressingPhoto, setIsCompressingPhoto] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   if (!pet) return null;
 
